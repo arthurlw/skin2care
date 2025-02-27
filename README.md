@@ -4,7 +4,7 @@ Design:
 -Gary
 
 Frontend:
-- 
+- Nancy
 
 Backend:
 - Yuki

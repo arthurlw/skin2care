@@ -2,6 +2,7 @@
 
 Design:
 - Gary
+- Althea
 
 Frontend:
 - Nancy

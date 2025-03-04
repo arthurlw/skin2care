@@ -5,6 +5,7 @@ Design:
 
 Frontend:
 - Nancy
+- Gigi
 
 Backend:
 - Yuki

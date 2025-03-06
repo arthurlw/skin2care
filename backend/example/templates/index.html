@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .task { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+        .completed { text-decoration: line-through; color: gray; }
+    </style>
+</head>
+<body>
+    <h1>Task Manager</h1>
+
+    <h2>Add Task</h2>
+    <form id="task-form">
+        <input type="text" id="title" placeholder="Title" required>
+        <input type="text" id="description" placeholder="Description">
+        <button type="submit">Add Task</button>
+    </form>
+
+    <h2>Tasks</h2>
+    <div id="tasks-container">
+        {% for task in tasks %}
+        <div class="task {% if task['status'] == 'completed' %}completed{% endif %}" id="task-{{ task['id'] }}">
+            <p><strong id="title-{{ task['id'] }}">{{ task['title'] }}</strong></p>
+            <p id="desc-{{ task['id'] }}">{{ task['description'] }}</p>
+            <p>Status: <span id="status-{{ task['id'] }}">{{ task['status'] }}</span></p>
+            <button onclick="editTask({{ task['id'] }})">Edit</button>
+            <button onclick="deleteTask({{ task['id'] }})">Delete</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div id="edit-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#fff; padding:20px; border:1px solid #ccc;">
+        <h3>Edit Task</h3>
+        <input type="hidden" id="edit-task-id">
+        <input type="text" id="edit-title" placeholder="Title">
+        <input type="text" id="edit-description" placeholder="Description">
+        <select id="edit-status">
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+        </select>
+        <button onclick="saveTask()">Save</button>
+        <button onclick="document.getElementById('edit-modal').style.display='none'">Cancel</button>
+    </div>
+
+
+    <script>
+        async function deleteTask(id) {
+            const response = await fetch(`/tasks/${id}`, { method: "DELETE" });
+            if (response.ok) {
+                location.reload();
+            }
+        }
+    
+        function editTask(id) {
+            document.getElementById("edit-task-id").value = id;
+            document.getElementById("edit-title").value = document.getElementById(`title-${id}`).innerText;
+            document.getElementById("edit-description").value = document.getElementById(`desc-${id}`).innerText;
+            document.getElementById("edit-status").value = document.getElementById(`status-${id}`).innerText;
+    
+            document.getElementById("edit-modal").style.display = "block";
+        }
+    
+        async function saveTask() {
+            const id = document.getElementById("edit-task-id").value;
+            const title = document.getElementById("edit-title").value;
+            const description = document.getElementById("edit-description").value;
+            const status = document.getElementById("edit-status").value;
+    
+            const response = await fetch(`/tasks/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title, description, status })
+            });
+    
+            if (response.ok) {
+                location.reload();
+            }
+        }
+
+        document.getElementById("task-form").addEventListener("submit", async function(event) {
+            event.preventDefault();  // Prevent the form from refreshing the page
+
+            // Get form data
+            const title = document.getElementById("title").value;
+            const description = document.getElementById("description").value;
+
+            // Send data to backend
+            const response = await fetch("/tasks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title, description, status: "pending" })
+            });
+
+            // If the request is successful, reload the tasks
+            if (response.ok) {
+                location.reload();  // Reload page to display the newly added task
+            }
+        });
+
+    </script>    
+</body>
+</html>

@@ -1,4 +1,7 @@
 # Skin2Care #
+PM:
+- Arthur
+- Jesslyn
 
 Design:
 - Gary

@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
 import sqlite3
 
 app = Flask(__name__)
+CORS(app)
 DB_NAME = "tasks.db"
 
 # Helper function to interact with the database

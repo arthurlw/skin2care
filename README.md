@@ -18,27 +18,3 @@ Backend:
 
 ML:
 - erin
-
-
-
-Classes for Backend
-- Routine
-    - routineId
-    - username:
-    - products:
-    - dateCreated
-
-- Product
-    - productId
-    - productname
-    - product description
-    - product brand
-    - type
-    
-- User
-    - userId
-    - username
-    - password
-    - gender
-    - skinType
-    - age

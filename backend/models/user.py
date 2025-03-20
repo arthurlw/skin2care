@@ -7,6 +7,7 @@ class User:
         self.gender = gender
         self.skin_type = skin_type
         self.age = age
+        self.fav_products = []
 
     def to_dict(self):
         return {
@@ -14,5 +15,8 @@ class User:
             "username": self.username,
             "gender": self.gender,
             "skinType": self.skin_type,
-            "age": self.age
+            "age": self.age,
+            "fav_products": self.fav_products
         }
+    
+    

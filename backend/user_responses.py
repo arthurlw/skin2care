@@ -108,3 +108,4 @@ def delete_notification(notification_id):
 
     return jsonify({"message": "Notification deleted successfully!"})
 
+

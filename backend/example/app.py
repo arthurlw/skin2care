@@ -28,6 +28,11 @@ def get_tasks():
     tasks = query_db("SELECT * FROM tasks")
     return jsonify([dict(task) for task in tasks])
 
+@app.route("/survey/<int:survey_id>", methods=["GET"])
+def get_survey(survey_id):
+    # Your survey logic here
+    return jsonify({"survey_id": survey_id, "title": "Sample Survey"})
+
 # GET a single task
 @app.route("/tasks/<int:task_id>", methods=["GET"])
 def get_task(task_id):

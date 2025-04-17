@@ -118,21 +118,21 @@ def change_email(user_id):
     
     new_email = data['email']
     
-    # Check if email is already in use by another user
+    
     existing_email = User.query.filter(User.email == new_email, User.id != user_id).first()
     if existing_email:
         return jsonify({"error": "Email is already in use"}), 409
     
-    # Find the user by ID
+    
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
     
-    # Update the email
+    
     user.email = new_email
     user.updated_at = datetime.now().isoformat()
     
-    # Save changes
+    
     db.session.commit()
     
     return jsonify({
@@ -143,7 +143,6 @@ def change_email(user_id):
 # PUT User's Password
 @app.route('/user/<int:user_id>/password', methods=['PUT'])
 def change_password(user_id):
-    # Get data from the request JSON
     data = request.json
     
     if not data or 'current_password' not in data or 'new_password' not in data:
@@ -151,25 +150,23 @@ def change_password(user_id):
     
     current_password = data['current_password']
     new_password = data['new_password']
-    
-    # Find the user by ID
+
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
     
-    # Verify the current password
-    if user.password != current_password:  # In a real app, use proper password verification
+    if user.password != current_password:
         return jsonify({"error": "Current password is incorrect"}), 401
     
-    # Validate new password (add your password strength requirements)
+    
     if len(new_password) < 8:
         return jsonify({"error": "Password must be at least 8 characters long"}), 400
     
-    # Update the password
+    
     user.password = new_password  # In a real app, hash the password before storing
     user.updated_at = datetime.now().isoformat()
     
-    # Save changes
+    
     db.session.commit()
     
     return jsonify({

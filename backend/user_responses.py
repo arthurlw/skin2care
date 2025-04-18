@@ -47,7 +47,7 @@ class Notification(db.Model):
     created_at = db.Column(db.String, default=lambda: datetime.now().isoformat())
     expires_at = db.Column(db.String, nullable=True)  # Optional expiration time
 
-    user = db.relationship('User', backref=db.backref('notifications', lazy=True))
+    user = db.relationship('User', backref=db.backref('user_notifications', lazy=True))
 
     def to_dict(self):
         return {
@@ -66,18 +66,46 @@ class Notification(db.Model):
 @app.route('/user', methods=['POST'])
 def create_user():
     data = request.json
-
-    if not data or 'user' not in data:
-        return jsonify({"error: User does not exist"}), 400
     
-    new_user = User(user=data['user'])
+    if not data:
+        return jsonify({"error": "Invalid request data"}), 400
+        
+    
+    required_fields = ['username', 'password', 'email', 'user_id']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Missing required field: {field}"}), 400
+    
+    
+    if User.query.filter_by(username=data['username']).first():
+        return jsonify({"error": "Username already exists"}), 409
+        
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({"error": "Email already exists"}), 409
+    
+
+    new_user = User(
+        user_id=data['user_id'],
+        username=data['username'],
+        password=data['password'],
+        email=data['email'],
+        gender=data.get('gender'),
+        skin_type=data.get('skin_type'),
+        age=data.get('age'),
+        notifications=data.get('notifications', False),
+        products=data.get('products'),
+        survey_id=data.get('survey_id'),
+        created_at=datetime.now().isoformat(),
+        updated_at=datetime.now().isoformat()
+    )
+    
     db.session.add(new_user)
     db.session.commit()
-
-    return jsonify({"message": "User created successfully!"})
+    
+    return jsonify({"message": "User created successfully!", "user": new_user.to_dict()}), 201
 
 # GET user's notifications
-@app.route('/user/<int:user_id>/notifications', methods=['GET'])
+@app.route('/user/<string:user_id>/notifications', methods=['GET'])
 def get_notifications(user_id):
     user_notifications = Notification.query.filter_by(user_id=user_id).all()
     if not user_notifications:
@@ -87,6 +115,7 @@ def get_notifications(user_id):
 
     for user_notification in user_notifications:
         result.append({
+            "id": user_notification.id,
             "user_id": user_notification.user_id,
             "message": user_notification.message
         })
@@ -109,7 +138,7 @@ def delete_notification(notification_id):
     return jsonify({"message": "Notification deleted successfully!"})
 
 # PUT User's email
-@app.route('/user/<int:user_id>/email', methods=['PUT'])
+@app.route('/user/<string:user_id>/email', methods=['PUT'])
 def change_email(user_id):
     data = request.json
     
@@ -124,7 +153,8 @@ def change_email(user_id):
         return jsonify({"error": "Email is already in use"}), 409
     
     
-    user = User.query.get(user_id)
+    # user = User.query.get(user_id)
+    user = User.query.filter_by(user_id=user_id).first()
     if not user:
         return jsonify({"error": "User not found"}), 404
     
@@ -141,7 +171,7 @@ def change_email(user_id):
     })
 
 # PUT User's Password
-@app.route('/user/<int:user_id>/password', methods=['PUT'])
+@app.route('/user/<string:user_id>/password', methods=['PUT'])
 def change_password(user_id):
     data = request.json
     
@@ -151,7 +181,8 @@ def change_password(user_id):
     current_password = data['current_password']
     new_password = data['new_password']
 
-    user = User.query.get(user_id)
+    # user = User.query.get(user_id)
+    user = User.query.filter_by(user_id=user_id).first()
     if not user:
         return jsonify({"error": "User not found"}), 404
     
@@ -163,7 +194,7 @@ def change_password(user_id):
         return jsonify({"error": "Password must be at least 8 characters long"}), 400
     
     
-    user.password = new_password  # In a real app, hash the password before storing
+    user.password = new_password 
     user.updated_at = datetime.now().isoformat()
     
     
@@ -172,6 +203,11 @@ def change_password(user_id):
     return jsonify({
         "message": "Password updated successfully"
     })
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
 
 
 

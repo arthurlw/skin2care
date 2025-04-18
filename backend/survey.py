@@ -81,12 +81,12 @@ def update_survey(user_id):
     })
 
 
-@app.route('/survey/int:<user_id>', methods=['DELETE'])
+@app.route('/survey/<int:user_id>', methods=['DELETE'])
 def delete_survey(user_id):
     response = SurveyResponse.query.get_or_404(user_id)
     
     db.session.delete(response)
-    db.commit()
+    db.session.commit()
 
     return jsonify ({
         "message": "Survey response deleted!",

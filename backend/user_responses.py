@@ -12,13 +12,13 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String, unique=True, nullable=False)
     username = db.Column(db.String, unique=True, nullable=False)
-    password = db.Column(db.String, nullable=False)  # Consider password hashing
+    password = db.Column(db.String, nullable=False) 
     gender = db.Column(db.String)
     skin_type = db.Column(db.String)
     age = db.Column(db.Integer)
     notifications = db.Column(db.Boolean, default=False)
     email = db.Column(db.String, unique=True, nullable=False)
-    products = db.Column(db.String)  # Could store as JSON string or consider a relationship
+    products = db.Column(db.String) 
     survey_id = db.Column(db.Integer)
     created_at = db.Column(db.String)
     updated_at = db.Column(db.String)
@@ -41,11 +41,11 @@ class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String, db.ForeignKey('user.user_id'), nullable=False)
     message = db.Column(db.String, nullable=False)
-    type = db.Column(db.String)  # e.g., "deal", "reminder", "product_update"
+    type = db.Column(db.String) 
     is_read = db.Column(db.Boolean, default=False)
-    product_id = db.Column(db.String, nullable=True)  # If notification is about a specific product
+    product_id = db.Column(db.String, nullable=True) 
     created_at = db.Column(db.String, default=lambda: datetime.now().isoformat())
-    expires_at = db.Column(db.String, nullable=True)  # Optional expiration time
+    expires_at = db.Column(db.String, nullable=True)
 
     user = db.relationship('User', backref=db.backref('user_notifications', lazy=True))
 
@@ -121,6 +121,34 @@ def get_notifications(user_id):
         })
     
     return jsonify(result)
+
+# CREATE a new notification
+@app.route('/notifications', methods=['POST'])
+def create_notification():
+    data = request.json
+
+    required_fields = ['user_id', 'message']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Missing required field: {field}"}), 400
+
+    new_notification = Notification(
+        user_id=data['user_id'],
+        message=data['message'],
+        type=data.get('type'),
+        is_read=data.get('is_read', False),
+        product_id=data.get('product_id'),
+        expires_at=data.get('expires_at'),
+        created_at=datetime.now().isoformat()
+    )
+
+    db.session.add(new_notification)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Notification created successfully!",
+        "notification": new_notification.to_dict()
+    }), 201
 
 
 # DELETE user's notifications

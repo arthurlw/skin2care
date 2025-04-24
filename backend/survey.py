@@ -24,7 +24,14 @@ def submit_survey():
     if not data or 'answers' not in data:
         return jsonify({"error": "Survey answers are required"}), 400
     
-    new_response = SurveyResponse(answers=data['answers'])
+    # new_response = SurveyResponse(answers=data['answers'])
+    new_response = SurveyResponse(
+    answers=data['answers'],
+    user_id=data.get('user_id'),
+    created_at=datetime.now().isoformat(),
+    updated_at=datetime.now().isoformat()
+)
+
     db.session.add(new_response)
     db.session.commit()
     

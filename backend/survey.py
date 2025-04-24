@@ -11,7 +11,7 @@ db = SQLAlchemy(app)
 
 class SurveyResponse(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, foreign_key=True)
+    user_id = db.Column(db.Integer)
     answers = db.Column(db.String, nullable=False)
     created_at = db.Column(db.String)
     updated_at = db.Column(db.String)

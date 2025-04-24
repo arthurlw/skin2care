@@ -1,3 +1,4 @@
+import json
 class Routine:
     def __init__(self, routine_id, username, products, date_created):
         self.routine_id = routine_id
@@ -12,3 +13,7 @@ class Routine:
             "products": [product.to_dict() for product in self.products],
             "dateCreated": self.date_created
         }
+
+    def get_product_info(self):
+        # return all of the information of routine in json format
+        return json.dumps(self.to_dict())

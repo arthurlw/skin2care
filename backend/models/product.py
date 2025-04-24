@@ -1,3 +1,4 @@
+import json
 class Product:
     def __init__(self, product_id, name, description, brand, product_type):
         self.product_id = product_id
@@ -14,3 +15,7 @@ class Product:
             "productBrand": self.brand,
             "type": self.product_type
         }
+    
+    def get_product_info(self):
+        # return all of the information of one product in json format
+        return json.dumps(self.to_dict())

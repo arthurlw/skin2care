@@ -8,6 +8,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    in_stock = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.String, default=lambda: datetime.now().isoformat())
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String, unique=True, nullable=False)
@@ -104,25 +111,13 @@ def create_user():
     
     return jsonify({"message": "User created successfully!", "user": new_user.to_dict()}), 201
 
-# GET user's notifications
-@app.route('/user/<string:user_id>/notifications', methods=['GET'])
-def get_notifications(user_id):
-    user_notifications = Notification.query.filter_by(user_id=user_id).all()
-    if not user_notifications:
-        return jsonify([])
-    
-    result = []
+# GET user
+@app.route('/user', methods=['GET'])
+def get_all_users():
+    users = User.query.all()
+    return jsonify([user.to_dict() for user in users]), 200
 
-    for user_notification in user_notifications:
-        result.append({
-            "id": user_notification.id,
-            "user_id": user_notification.user_id,
-            "message": user_notification.message
-        })
-    
-    return jsonify(result)
-
-# CREATE a new notification
+# POST a new notification
 @app.route('/notifications', methods=['POST'])
 def create_notification():
     data = request.json
@@ -150,6 +145,23 @@ def create_notification():
         "notification": new_notification.to_dict()
     }), 201
 
+# GET user's notifications
+@app.route('/user/<string:user_id>/notifications', methods=['GET'])
+def get_notifications(user_id):
+    user_notifications = Notification.query.filter_by(user_id=user_id).all()
+    if not user_notifications:
+        return jsonify([])
+    
+    result = []
+
+    for user_notification in user_notifications:
+        result.append({
+            "id": user_notification.id,
+            "user_id": user_notification.user_id,
+            "message": user_notification.message
+        })
+    
+    return jsonify(result)
 
 # DELETE user's notifications
 @app.route('/notifications/<int:notification_id>', methods=['DELETE'])
@@ -231,6 +243,71 @@ def change_password(user_id):
     return jsonify({
         "message": "Password updated successfully"
     })
+
+# POST favorite user's products
+@app.route('/user/<string:user_id>/product', methods=['POST'])
+def add_fav_product(user_id):
+    data = request.json
+    if not data or 'product_id' not in data:
+        return jsonify({"error": "Product ID is required"}), 400
+
+    user = User.query.filter_by(user_id=user_id).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    if user.products:
+        product_list = user.products.split(',')
+        if data['product_id'] not in product_list:
+            product_list.append(data['product_id'])
+            user.products = ','.join(product_list)
+    else:
+        user.products = data['product_id']
+
+    user.updated_at = datetime.now().isoformat()
+    db.session.commit()
+
+    return jsonify({
+        "message": "Product added to favorites!",
+        "fav_products": user.products
+    })
+
+@app.route('/product', methods=['POST'])
+def add_or_update_product():
+    data = request.json
+    if 'name' not in data:
+        return jsonify({"error": "Product name is required"}), 400
+
+    product = Product.query.filter_by(name=data['name']).first()
+    if product:
+        if data.get('in_stock') is not None:
+            product.in_stock = data['in_stock']
+            product.created_at = datetime.now().isoformat()
+    else:
+        product = Product(
+            name=data['name'],
+            in_stock=data.get('in_stock', True)
+        )
+        db.session.add(product)
+
+    db.session.commit()
+
+    users = User.query.all()
+    for user in users:
+        if product.name in (user.products or ''):
+            notification = Notification(
+                user_id=user.user_id,
+                message=f"The product '{product.name}' is now back in stock!",
+                type="product_update",
+                product_id=str(product.id),
+                created_at=datetime.now().isoformat()
+            )
+            db.session.add(notification)
+
+    db.session.commit()
+
+    return jsonify({"message": "Product saved and notifications sent!"})
+
+
 
 if __name__ == '__main__':
     with app.app_context():

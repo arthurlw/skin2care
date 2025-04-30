@@ -188,7 +188,7 @@ def change_email(user_id):
     new_email = data['email']
     
     
-    existing_email = User.query.filter(User.email == new_email, User.id != user_id).first()
+    existing_email = User.query.filter(User.email == new_email, User.user_id != user_id).first()
     if existing_email:
         return jsonify({"error": "Email is already in use"}), 409
     

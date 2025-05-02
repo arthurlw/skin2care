@@ -70,7 +70,7 @@ Only recommend products if they are mentioned in the context."""
 # ------------------- Example Usage -------------------
 if __name__ == "__main__":
     userdata = {
-        "OPENROUTER_API_KEY": "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"
+        "OPENROUTER_API_KEY": "insert-key-here"
     }
 
     json_path = "./content/sheet_masks_products.json"

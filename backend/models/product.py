@@ -1,12 +1,27 @@
 import json
-class Product:
-    def __init__(self, product_id, name, description, brand, product_type):
-        self.product_id = product_id
-        self.name = name
-        self.description = description
-        self.brand = brand
-        self.product_type = product_type
+from flask import Flask, jsonify
+from flask_sqlalchemy import SQLAlchemy
 
+# Create the Flask application
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database.db'  # Configure your database
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Assuming db is already initialized with:
+# db = SQLAlchemy(app)
+
+# Initialize SQLAlchemy with the app
+db = SQLAlchemy(app)
+
+class Product(db.Model):
+    __tablename__ = 'products'
+    
+    product_id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text)
+    brand = db.Column(db.String(255))
+    product_type = db.Column(db.String(100))
+    
     def to_dict(self):
         return {
             "productId": self.product_id,

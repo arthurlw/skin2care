@@ -1,3 +1,15 @@
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+
+from model.routine import Routine
+from routine_example import SkincareStep
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///skincare.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
 @app.route('/routines/<int:routine_id>', methods=['GET'])#Get skincare routine step info
 #Should work when Routine class is updated/implemented?
 def get_routine(routine_id):#assumes routine_id is id of desired Routine object
@@ -47,6 +59,11 @@ def update_step(routine_id, step_id):
     db.session.commit()
     return jsonify({"id": step.id, "routine_id": step.routine_id, "step_number": step.step_number, "product_name": step.product_name, "description": step.description})
 
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
 
 
 
